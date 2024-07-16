@@ -27,6 +27,7 @@ app.param('id', function(req, res, next, id) {
 
 	      ch.consume(q.queue, function(msg) {
 	        if (msg.properties.correlationId === corr) {
+			console.log("======== Reply ========")
 	          console.log(' [.] REPLY %s', msg.content.toString());
 	          ans.push(msg.content.toString());
 
