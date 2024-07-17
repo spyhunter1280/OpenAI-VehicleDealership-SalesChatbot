@@ -1,29 +1,23 @@
-FROM node:alpine as node
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
 
-WORKDIR /
+# Set environment varibles
+ENV PIP_DEFAULT_TIMEOUT=100 \
+    # Allow statements and log messages to immediately appear
+    PYTHONUNBUFFERED=1 \
+    # disable a pip version check to reduce run-time & log-spam
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    # cache is useless in docker image, so disable to reduce image size
+    PIP_NO_CACHE_DIR=1
 
-COPY ./ ./
+# Set the working directory in docker
+WORKDIR /app
 
-RUN npm install
+# Copy the current directory contents into the container at /app
+COPY . /app
 
-WORKDIR ./client
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN npm install
-
-RUN npm run build
-
-
-FROM tensorflow/tensorflow:latest-py3 as tf
-
-WORKDIR /
- 
-RUN pip install keras nltk pika urllib3
-
-COPY --from=node ./ ./
-
-
-FROM rabbitmq:alpine
-COPY --from=tf ./ ./
-
-
-CMD ["/bin/sh", "./myscript.sh"] 
+# Specify the command to run on container start
+CMD ["python", "main.py"]
